@@ -108,7 +108,13 @@
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
         }
-        /* Show parts by updating their opacity in JS */
+
+        /* Style for the falling head effect */
+        .hangman-head.fall {
+            transition: transform 0.5s ease-in, opacity 0.5s ease-in;
+            transform: translateY(50px); /* Move downwards */
+            opacity: 0; /* Fade out */
+        }
 
         /* Word display styling */
         .word-display {
@@ -803,6 +809,15 @@
             messageDiv.style.color = '#63B3ED'; // Blue initial message
 
             updateDisplay();
+
+            // Reset head's transform and opacity for new game
+            const headPart = document.getElementById('hangman-head');
+            if (headPart) {
+                headPart.classList.remove('fall');
+                headPart.style.opacity = '0'; // Ensure it's hidden before new game starts drawing
+                headPart.style.transform = 'translateY(0)'; // Reset position
+            }
+
             guessInput.focus();
         }
 
@@ -885,6 +900,16 @@
                 showMessage(`YOU WON! The word was '${secretWord}'!`, '#48BB78'); // Green win message
                 endGame(true);
             } else if (wrongGuesses >= maxWrongGuesses) {
+                // This is the final wrong guess leading to loss
+                const headPart = document.getElementById('hangman-head');
+                if (headPart) {
+                    // Ensure the head is visible before animating its fall
+                    headPart.style.opacity = '1';
+                    // Apply the fall animation class after a short delay to ensure it's rendered first
+                    setTimeout(() => {
+                        headPart.classList.add('fall');
+                    }, 50);
+                }
                 showMessage(`GAME OVER! The word was '${secretWord}'. You lost.`, '#FC8181'); // Red loss message
                 endGame(false);
             }
