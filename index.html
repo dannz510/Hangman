@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangman Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* General body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #2c3e50; /* Dark blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #ecf0f1; /* Light text color */
+        }
+
+        /* Game container styling */
+        .game-container {
+            background-color: #34495e; /* Slightly lighter dark blue */
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid #4a627d;
+        }
+
+        /* Heading styling */
+        h1 {
+            font-family: 'Press Start 2P', cursive; /* Retro game font */
+            color: #e74c3c; /* Red accent */
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            font-weight: 400;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Hangman drawing area */
+        .hangman-drawing {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em; /* Adjust for responsiveness */
+            height: 150px; /* Fixed height for drawing */
+            white-space: pre; /* Preserve whitespace for ASCII art */
+            margin: 20px auto;
+            border: 1px solid #7f8c8d;
+            background-color: #2c3e50;
+            padding: 10px;
+            border-radius: 8px;
+            overflow: hidden; /* Hide overflow if text is too large */
+            text-align: left; /* Align drawing left */
+            color: #bdc3c7;
+        }
+
+        /* Word display styling */
+        .word-display {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2em;
+            letter-spacing: 5px;
+            margin-bottom: 25px;
+            color: #f1c40f; /* Yellow accent */
+            word-wrap: break-word; /* Ensure long words break */
+        }
+
+        /* Guessed letters display */
+        .guessed-letters {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            min-height: 1.5em; /* Ensure space even when empty */
+            color: #95a5a6;
+        }
+
+        /* Input field styling */
+        input[type="text"] {
+            width: 80px; /* Smaller width for single letter */
+            padding: 12px 10px;
+            margin-bottom: 20px;
+            border: 2px solid #7f8c8d;
+            border-radius: 10px;
+            font-size: 1.5em;
+            text-align: center;
+            box-sizing: border-box;
+            text-transform: uppercase;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #2980b9; /* Blue focus border */
+            outline: none;
+            box-shadow: 0 0 8px rgba(41, 128, 185, 0.3);
+        }
+
+        /* Button styling */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        button {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            font-family: 'Inter', sans-serif;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .guess-btn {
+            background-color: #27ae60; /* Green */
+            color: white;
+            background-image: linear-gradient(to right, #27ae60, #2ecc71);
+        }
+
+        .guess-btn:hover:not(:disabled) {
+            background-color: #229a56;
+            background-image: linear-gradient(to right, #229a56, #28a964);
+        }
+
+        .reset-btn {
+            background-color: #c0392b; /* Dark red */
+            color: white;
+            background-image: linear-gradient(to right, #c0392b, #e74c3c);
+        }
+
+        .reset-btn:hover {
+            background-color: #a53023;
+            background-image: linear-gradient(to right, #a53023, #cc4236);
+        }
+
+        button:disabled {
+            background-color: #7f8c8d;
+            background-image: none;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Message display */
+        .message {
+            margin-top: 25px;
+            font-size: 1.3em;
+            font-weight: 700;
+            min-height: 1.5em; /* Ensure space even when empty */
+            color: #3498db; /* Blue for messages */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            h1 {
+                font-size: 1.4em;
+            }
+            .word-display {
+                font-size: 1.5em;
+            }
+            .hangman-drawing {
+                font-size: 1em;
+                height: 120px;
+            }
+            input[type="text"] {
+                font-size: 1.2em;
+                padding: 10px 8px;
+                width: 70px;
+            }
+            button {
+                font-size: 0.9em;
+                padding: 10px 15px;
+            }
+            .message {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Hangman</h1>
+        <div class="hangman-drawing" id="hangmanDrawing">
+            <!-- ASCII art for hangman will be updated here -->
+        </div>
+
+        <div class="word-display" id="wordDisplay"></div>
+        <div class="guessed-letters">Guessed Letters: <span id="guessedLettersSpan"></span></div>
+
+        <input type="text" id="guessInput" maxlength="1" placeholder="A">
+        <div class="btn-group">
+            <button class="guess-btn" id="guessBtn">Guess Letter</button>
+            <button class="reset-btn" id="resetBtn">Reset Game</button>
+        </div>
+
+        <div class="message" id="message">Loading words...</div>
+    </div>
+
+    <script>
+        // Fallback word list in case online fetching fails
+        const fallbackWordList = [
+            "JAVASCRIPT", "HTML", "CSS", "PROGRAMMING", "COMPUTER", "DEVELOPER",
+            "WEBSITE", "ALGORITHM", "FRONTEND", "BACKEND", "ANIMAL", "ELEPHANT",
+            "GUITAR", "PIANO", "BOOK", "LIBRARY", "SUNSHINE", "RAINBOW"
+        ];
+
+        // This string simulates a large word list fetched from an online source.
+        // In a real application, you would replace this with an actual fetch to a URL.
+        const wordListContent = `
+            ABSTRACT
+            ACCIDENT
+            ADVENTURE
+            ALPHABET
+            AMAZING
+            ANCIENT
+            APRICOT
+            ARCHITECTURE
+            ASTEROID
+            ASTRONOMY
+            ATMOSPHERE
+            AUTOMOBILE
+            AVOCADO
+            BAKERY
+            BALLET
+            BANANA
+            BASKETBALL
+            BEAUTIFUL
+            BEGINNER
+            BIOLOGY
+            BICYCLE
+            BIRTHDAY
+            BLANKET
+            BLUEBERRY
+            BOOKCASE
+            BRAINSTORM
+            BREAKFAST
+            BRIGHTNESS
+            BROADCAST
+            BUTTERFLY
+            CALENDAR
+            CAMERA
+            CAMPGROUND
+            CANDLESTICK
+            CARNIVAL
+            CELEBRATE
+            CHALLENGE
+            CHAMPION
+            CHOCOLATE
+            CHRISTMAS
+            CINNAMON
+            CIRCULAR
+            CLASSROOM
+            CLEANING
+            CLOUDLESS
+            COCONUT
+            COFFEE
+            COMFORT
+            COMPANION
+            CONCERT
+            CONCRETE
+            CONFIDENCE
+            CONNECTION
+            CONSEQUENCE
+            CONSTELLATION
+            CONSTRUCTION
+            COOKING
+            CORAL
+            CORNERSTONE
+            COTTON
+            COUNTRY
+            COURAGE
+            CRANBERRY
+            CREATIVE
+            CRICKET
+            CRITERION
+            CROCODILE
+            CUCUMBER
+            CULTURE
+            CURIOUS
+            DAFFODIL
+            DANGEROUS
+            DAZZLING
+            DECEMBER
+            DELICIOUS
+            DELIGHT
+            DEMOCRACY
+            DESIGN
+            DESTINATION
+            DIAMOND
+            DIARY
+            DINOSAUR
+            DISCOVERY
+            DISTANCE
+            DREAMING
+            DURABLE
+            EAGLE
+            EARNEST
+            ECLIPSE
+            ELEGANT
+            EMERALD
+            EMOTION
+            ENCOURAGE
+            ENGINE
+            ENJOYMENT
+            ENTERTAINMENT
+            ENVIRONMENT
+            EPISODE
+            EQUILIBRIUM
+            ESCALATOR
+            ESSENTIAL
+            ESTIMATED
+            ETERNAL
+            EUCALYPTUS
+            EVERGREEN
+            EVOLUTION
+            EXCELLENCE
+            EXCHANGE
+            EXCITEMENT
+            EXPLORATION
+            FABULOUS
+            FACILITY
+            FAIRYTALE
+            FANTASTIC
+            FASCINATE
+            FEBRUARY
+            FIREFLY
+            FLAMINGO
+            FLOWER
+            FOREST
+            FORTUNE
+            FREEDOM
+            FRIENDSHIP
+            FRUITFUL
+            GALLERY
+            GARDEN
+            GARGOYLE
+            GEMSTONE
+            GENERATOR
+            GENEROUS
+            GENTLEMAN
+            GEOMETRY
+            GINGER
+            GLACIER
+            GLAMOROUS
+            GLITTERING
+            GOLDEN
+            GOURMET
+            GRANITE
+            GRAPEFRUIT
+            GRASSHOPPER
+            GREENHOUSE
+            GUARDIAN
+            GUIDANCE
+            HARMONY
+            HAZELNUT
+            HEADPHONES
+            HEARTFELT
+            HEAVENLY
+            HELICOPTER
+            HIGHLIGHT
+            HILLTOP
+            HOLIDAY
+            HONESTY
+            HONEYCOMB
+            HORIZON
+            HOSPITALITY
+            HUMMINGBIRD
+            HYDRANGEA
+            ICEBERG
+            ILLUMINATE
+            IMAGINATION
+            IMPRESSION
+            INCENSE
+            INCREDIBLE
+            INDEPENDENCE
+            INFINITY
+            INNOVATION
+            INSPIRATION
+            INSTRUMENT
+            INTEGRITY
+            INTELLIGENCE
+            INTERNET
+            INVITATION
+            IRONWOOD
+            ISLAND
+            IVORY
+            JASMINE
+            JEWELRY
+            JOURNEY
+            JOYFUL
+            KALEIDOSCOPE
+            KANGAROO
+            KEYBOARD
+            KINGDOM
+            KITCHEN
+            KNIGHT
+            KNOWLEDGE
+            LABYRINTH
+            LANDSCAPE
+            LANTERN
+            LAVENDER
+            LEISURE
+            LEMONADE
+            LEOPARD
+            LIBERTY
+            LIGHTHOUSE
+            LILAC
+            LIMESTONE
+            LIONFISH
+            LOCOMOTIVE
+            LONELINESS
+            MAGNIFICENT
+            MAHOGANY
+            MAPLE
+            MARBLE
+            MARIGOLD
+            MASTERSHIP
+            MEADOW
+            MELODY
+            MEMORABLE
+            MERMAID
+            METEOR
+            MICROPHONE
+            MIDNIGHT
+            MOMENTUM
+            MONASTERY
+            MOONLIGHT
+            MORNING
+            MOUNTAIN
+            MUSEUM
+            MUSICIAN
+            MYSTERY
+            NATURE
+            NAUTILUS
+            NEBULA
+            NEIGHBORHOOD
+            NIGHTINGALE
+            NOVEMBER
+            OAKWOOD
+            OCEAN
+            OCTOBER
+            ORCHID
+            ORANGE
+            OSTRICH
+            OWL
+            PALACE
+            PANDORA
+            PAPIERMACHE
+            PARADISE
+            PARALLAX
+            PASSENGER
+            PASSION
+            PEACEMAKER
+            PEANUT
+            PEARL
+            PEBBLE
+            PELICAN
+            PENCIL
+            PERFECTION
+            PERFORMANCE
+            PETAL
+            PHOENIX
+            PHOTOGRAPH
+            PIONEER
+            PISTACHIO
+            PLATINUM
+            PLAYGROUND
+            PLEASURE
+            POLARIS
+            POMEGRANATE
+            POPULAR
+            PORTFOLIO
+            POSITIVE
+            POTATO
+            POWERFUL
+            PRECIOUS
+            PREMIER
+            PRESTIGE
+            PRIMARY
+            PRINCESS
+            PROSPERITY
+            RADIANT
+            RAINFOREST
+            ASPIRATION
+            REFLECT
+            REINDEER
+            REMARKABLE
+            RENAISSANCE
+            REPORTER
+            RESCUE
+            RESILIENCE
+            RESTAURANT
+            REVOLUTION
+            RHINOCEROS
+            RHYTHM
+            RIVERSIDE
+            ROSEMARY
+            RUBY
+            SACRED
+            SAFARI
+            SAFFRON
+            SAILBOAT
+            SALMON
+            SAMURAI
+            SANCTUARY
+            SANDSTONE
+            SAPPHIRE
+            SAXOPHONE
+            SCULPTURE
+            SEAGULL
+            SEASHELL
+            SEASON
+            SECRET
+            SERENITY
+            SHAMROCK
+            SHADOW
+            SILENCE
+            SILKWOOD
+            SILVER
+            SINGULAR
+            SKYSCRAPER
+            SMOOTHNESS
+            SNOWFLAKE
+            SOLITUDE
+            SOMERSAULT
+            SONGBIRD
+            SOPHISTICATED
+            SPARKLE
+            SPECTRUM
+            SPINACH
+            SPIRIT
+            SPONTANEOUS
+            SPRINGTIME
+            STAINLESS
+            STARFISH
+            STATIONERY
+            STATUE
+            STORMY
+            STRAWBERRY
+            SUBLIME
+            SUCCESS
+            SUMMER
+            SUNFLOWER
+            SUNSET
+            SURPRISING
+            SYMPHONY
+            TAILOR
+            TANGERINE
+            TELESCOPE
+            TEMPEST
+            TERRACOTTA
+            THEATER
+            THOROUGH
+            THOUGHTFUL
+            TIGERLILY
+            TIMELESS
+            TOPAZ
+            TOURMALINE
+            TRADITION
+            TRANQUIL
+            TREASURE
+            TULIP
+            TURQUOISE
+            UMBRELLA
+            UNDERSTANDING
+            UNICORN
+            UNIVERSE
+            UTOPIA
+            VALENTINE
+            VANILLA
+            VELVET
+            VENTURE
+            VERMILLION
+            VIBRANT
+            VICTORY
+            VILLAGE
+            VINEYARD
+            VINTAGE
+            VIOLET
+            VIRTUAL
+            VOLCANO
+            WANDERLUST
+            WATERFALL
+            WHISPER
+            WILDERNESS
+            WILLOW
+            WINDMILL
+            WONDERFUL
+            WOODLAND
+            YELLOWSTONE
+            YESTERDAY
+            YOGURT
+            ZEPHYR
+            ZODIAC
+            ZUCCHINI
+        `;
+
+
+        // Game state variables
+        let availableWords = []; // Will store the words fetched online
+        let secretWord = '';
+        let guessedLetters = [];
+        let displayWord = [];
+        let wrongGuesses = 0;
+        const maxWrongGuesses = 6; // Head, Body, Left Arm, Right Arm, Left Leg, Right Leg
+        let gameOver = false;
+
+        // ASCII art stages for the hangman
+        const hangmanStages = [
+            `
+   -----
+   |   |
+       |
+       |
+       |
+       |
+  -------
+            `,
+            `
+   -----
+   |   |
+   O   |
+       |
+       |
+       |
+  -------
+            `,
+            `
+   -----
+   |   |
+   O   |
+   |   |
+       |
+       |
+  -------
+            `,
+            `
+   -----
+   |   |
+   O   |
+  /|   |
+       |
+       |
+  -------
+            `,
+            `
+   -----
+   |   |
+   O   |
+  /|\\  |
+       |
+       |
+  -------
+            `,
+            `
+   -----
+   |   |
+   O   |
+  /|\\  |
+  /    |
+       |
+  -------
+            `,
+            `
+   -----
+   |   |
+   O   |
+  /|\\  |
+  / \\  |
+       |
+  -------
+            `
+        ];
+
+        // Get references to HTML elements
+        const hangmanDrawingDiv = document.getElementById('hangmanDrawing');
+        const wordDisplayDiv = document.getElementById('wordDisplay');
+        const guessedLettersSpan = document.getElementById('guessedLettersSpan');
+        const guessInput = document.getElementById('guessInput');
+        const guessBtn = document.getElementById('guessBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const messageDiv = document.getElementById('message');
+
+        /**
+         * Fetches words from a simulated online source.
+         * In a real application, you would replace this with a fetch call to a real URL.
+         * For example: fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words.txt')
+         */
+        async function fetchWords() {
+            messageDiv.textContent = 'Loading words...';
+            messageDiv.style.color = '#3498db';
+            guessInput.disabled = true;
+            guessBtn.disabled = true;
+
+            try {
+                // Simulate a network request with a delay for demonstration
+                // In a real app: const response = await fetch('YOUR_WORD_LIST_URL_HERE');
+                // const text = await response.text();
+                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+                // Use the predefined wordListContent for demonstration
+                const text = wordListContent;
+
+                // Process the fetched text
+                const rawWords = text.split('\n');
+                // Filter and clean words: uppercase, min/max length, only letters
+                availableWords = rawWords
+                    .map(word => word.trim().toUpperCase())
+                    .filter(word => word.length >= 4 && word.length <= 12 && /^[A-Z]+$/.test(word));
+
+                if (availableWords.length === 0) {
+                    console.warn("Fetched word list is empty or invalid. Using fallback list.");
+                    availableWords = fallbackWordList;
+                }
+
+                messageDiv.textContent = 'Words loaded!';
+                messageDiv.style.color = '#2ecc71';
+            } catch (error) {
+                console.error("Failed to fetch words:", error);
+                showMessage("Failed to load words. Using a basic list.", '#e74c3c');
+                availableWords = fallbackWordList; // Use fallback if fetch fails
+            } finally {
+                // Short delay before starting game after load message
+                setTimeout(() => initGameLogic(), 1000);
+            }
+        }
+
+        /**
+         * Initializes the core game logic after words are loaded.
+         */
+        function initGameLogic() {
+            // Reset game state
+            secretWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+            guessedLetters = [];
+            displayWord = Array(secretWord.length).fill('_');
+            wrongGuesses = 0;
+            gameOver = false;
+
+            // Reset UI
+            guessInput.value = '';
+            guessInput.disabled = false;
+            guessBtn.disabled = false;
+            messageDiv.textContent = 'Guess a letter!';
+            messageDiv.style.color = '#3498db'; // Reset message color
+
+            updateDisplay();
+            guessInput.focus();
+        }
+
+        /**
+         * Updates the game display (word, guessed letters, hangman drawing).
+         */
+        function updateDisplay() {
+            wordDisplayDiv.textContent = displayWord.join(' ');
+            guessedLettersSpan.textContent = guessedLetters.join(', ');
+            hangmanDrawingDiv.textContent = hangmanStages[wrongGuesses];
+        }
+
+        /**
+         * Handles a letter guess from the user.
+         */
+        function handleGuess() {
+            if (gameOver) return;
+
+            let guess = guessInput.value.toUpperCase();
+            guessInput.value = ''; // Clear input immediately
+
+            // Input validation
+            if (!guess.match(/^[A-Z]$/)) {
+                showMessage("Please enter a single letter from A-Z.", '#e74c3c');
+                return;
+            }
+            if (guessedLetters.includes(guess)) {
+                showMessage(`You already guessed '${guess}'. Try a new letter.`, '#f1c40f');
+                return;
+            }
+
+            guessedLetters.push(guess);
+            let foundMatch = false;
+
+            for (let i = 0; i < secretWord.length; i++) {
+                if (secretWord[i] === guess) {
+                    displayWord[i] = guess;
+                    foundMatch = true;
+                }
+            }
+
+            if (foundMatch) {
+                showMessage(`Good guess! '${guess}' is in the word.`, '#2ecc71');
+            } else {
+                wrongGuesses++;
+                showMessage(`Oops! '${guess}' is not in the word.`, '#e74c3c');
+            }
+
+            updateDisplay();
+            checkGameStatus();
+        }
+
+        /**
+         * Checks if the game has been won or lost.
+         */
+        function checkGameStatus() {
+            if (displayWord.join('') === secretWord) {
+                showMessage(`YOU WON! The word was '${secretWord}'.`, '#2ecc71');
+                endGame(true);
+            } else if (wrongGuesses >= maxWrongGuesses) {
+                showMessage(`GAME OVER! The word was '${secretWord}'. You lost.`, '#e74c3c');
+                endGame(false);
+            }
+        }
+
+        /**
+         * Ends the current game session.
+         * @param {boolean} won - True if the player won, false if lost.
+         */
+        function endGame(won) {
+            gameOver = true;
+            guessInput.disabled = true;
+            guessBtn.disabled = true;
+        }
+
+        /**
+         * Displays a temporary message to the user.
+         * @param {string} msg - The message to display.
+         * @param {string} color - The color for the message text.
+         */
+        function showMessage(msg, color) {
+            messageDiv.textContent = msg;
+            messageDiv.style.color = color;
+        }
+
+        // Event Listeners
+        guessBtn.addEventListener('click', handleGuess);
+        resetBtn.addEventListener('click', initGameLogic); // Reset button calls initGameLogic directly after words are loaded
+        guessInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                handleGuess();
+            }
+        });
+
+        // Start loading words when the window loads
+        window.onload = fetchWords;
+    </script>
+</body>
+</html>
