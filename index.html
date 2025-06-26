@@ -6,10 +6,10 @@
     <title>Hangman Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* General body styling */
+        /* General body styling for a modern, dark theme */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #2c3e50; /* Dark blue-gray background */
+            background-color: #1a202c; /* Deep charcoal background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -17,186 +17,283 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
-            color: #ecf0f1; /* Light text color */
+            color: #e2e8f0; /* Light gray text */
         }
 
-        /* Game container styling */
+        /* Game container with sleek styling */
         .game-container {
-            background-color: #34495e; /* Slightly lighter dark blue */
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-            padding: 30px;
-            max-width: 500px;
+            background-color: #2d3748; /* Darker blue-gray for container */
+            border-radius: 20px; /* More rounded corners */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4); /* Deeper shadow */
+            padding: 40px;
+            max-width: 550px; /* Slightly wider */
             width: 100%;
             text-align: center;
-            border: 1px solid #4a627d;
+            border: 1px solid #4a5568; /* Subtle border */
+            position: relative; /* For loading overlay */
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent dark overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none; /* Allows clicks to pass through when hidden */
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #63B3ED; /* Blue spinner */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Heading styling */
         h1 {
-            font-family: 'Press Start 2P', cursive; /* Retro game font */
-            color: #e74c3c; /* Red accent */
-            margin-bottom: 20px;
-            font-size: 1.8em;
+            font-family: 'Press Start 2P', cursive;
+            color: #f6ad55; /* Warm orange accent */
+            margin-bottom: 25px;
+            font-size: 2.2em; /* Larger heading */
             font-weight: 400;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5); /* Stronger shadow */
+            letter-spacing: 2px;
         }
 
-        /* Hangman drawing area */
-        .hangman-drawing {
-            font-family: 'Courier New', monospace;
-            font-size: 1.3em; /* Adjust for responsiveness */
-            height: 150px; /* Fixed height for drawing */
-            white-space: pre; /* Preserve whitespace for ASCII art */
+        /* SVG Hangman Drawing Area */
+        .hangman-svg-container {
+            width: 100%;
+            max-width: 250px; /* Max width for SVG */
+            height: 180px; /* Fixed height for consistent drawing */
             margin: 20px auto;
-            border: 1px solid #7f8c8d;
-            background-color: #2c3e50;
-            padding: 10px;
-            border-radius: 8px;
-            overflow: hidden; /* Hide overflow if text is too large */
-            text-align: left; /* Align drawing left */
-            color: #bdc3c7;
+            border: 1px solid #4a5568;
+            background-color: #212832; /* Even darker background for SVG */
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex; /* Center SVG */
+            justify-content: center;
+            align-items: center;
         }
+
+        .hangman-svg {
+            width: 90%;
+            height: 90%;
+            stroke: #a0aec0; /* Light gray for hangman lines */
+            stroke-width: 3;
+            stroke-linecap: round;
+            fill: none;
+        }
+
+        /* Individual hangman parts - initially hidden */
+        .hangman-part {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        /* Show parts by updating their opacity in JS */
 
         /* Word display styling */
         .word-display {
             font-family: 'Press Start 2P', cursive;
-            font-size: 2em;
-            letter-spacing: 5px;
-            margin-bottom: 25px;
-            color: #f1c40f; /* Yellow accent */
-            word-wrap: break-word; /* Ensure long words break */
+            font-size: 2.5em; /* Larger word display */
+            letter-spacing: 8px; /* More spacing */
+            margin-bottom: 30px;
+            color: #81e6d9; /* Teal accent for word */
+            word-wrap: break-word;
+            padding: 0 10px;
         }
 
         /* Guessed letters display */
         .guessed-letters {
-            font-size: 1.1em;
-            margin-bottom: 20px;
-            min-height: 1.5em; /* Ensure space even when empty */
-            color: #95a5a6;
+            font-size: 1.2em;
+            margin-bottom: 25px;
+            min-height: 1.5em;
+            color: #a0aec0; /* Lighter gray for guessed letters */
         }
 
         /* Input field styling */
         input[type="text"] {
-            width: 80px; /* Smaller width for single letter */
-            padding: 12px 10px;
-            margin-bottom: 20px;
-            border: 2px solid #7f8c8d;
-            border-radius: 10px;
-            font-size: 1.5em;
+            width: 90px; /* Slightly wider */
+            padding: 15px 10px; /* More padding */
+            margin-bottom: 25px;
+            border: 2px solid #4a5568;
+            border-radius: 12px; /* More rounded */
+            font-size: 1.8em; /* Larger font in input */
             text-align: center;
             box-sizing: border-box;
             text-transform: uppercase;
-            background-color: #ecf0f1;
-            color: #2c3e50;
-            transition: border-color 0.3s ease;
+            background-color: #e2e8f0; /* Light background for input */
+            color: #2d3748; /* Dark text */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            font-weight: bold;
         }
 
         input[type="text"]:focus {
-            border-color: #2980b9; /* Blue focus border */
+            border-color: #63B3ED; /* Blue focus border */
             outline: none;
-            box-shadow: 0 0 8px rgba(41, 128, 185, 0.3);
+            box-shadow: 0 0 10px rgba(99, 179, 237, 0.5);
         }
 
-        /* Button styling */
+        /* Button group layout */
         .btn-group {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            flex-direction: column; /* Stack buttons vertically */
+            gap: 18px; /* More space between buttons */
         }
 
         button {
-            padding: 14px 25px;
+            padding: 16px 30px; /* Larger buttons */
             border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
+            border-radius: 12px;
+            font-size: 1.2em; /* Larger font */
             font-weight: 700;
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Deeper shadow */
             text-transform: uppercase;
             font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+            position: relative; /* For pseudo-elements */
+            overflow: hidden; /* For hover effects */
         }
 
         button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(3px); /* Deeper press effect */
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Shine effect on hover */
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
         }
 
         .guess-btn {
-            background-color: #27ae60; /* Green */
+            background-color: #48bb78; /* Green */
             color: white;
-            background-image: linear-gradient(to right, #27ae60, #2ecc71);
+            background-image: linear-gradient(to right, #48bb78, #6ee7b7);
         }
 
         .guess-btn:hover:not(:disabled) {
-            background-color: #229a56;
-            background-image: linear-gradient(to right, #229a56, #28a964);
+            background-color: #38a169;
+            background-image: linear-gradient(to right, #38a169, #54d1a0);
         }
 
         .reset-btn {
-            background-color: #c0392b; /* Dark red */
+            background-color: #ef4444; /* Red */
             color: white;
-            background-image: linear-gradient(to right, #c0392b, #e74c3c);
+            background-image: linear-gradient(to right, #ef4444, #f87171);
         }
 
         .reset-btn:hover {
-            background-color: #a53023;
-            background-image: linear-gradient(to right, #a53023, #cc4236);
+            background-color: #dc2626;
+            background-image: linear-gradient(to right, #dc2626, #fca5a5);
         }
 
         button:disabled {
-            background-color: #7f8c8d;
+            background-color: #4a5568;
             background-image: none;
             cursor: not-allowed;
             box-shadow: none;
+            color: #a0aec0;
         }
 
         /* Message display */
         .message {
-            margin-top: 25px;
-            font-size: 1.3em;
+            margin-top: 30px;
+            font-size: 1.4em; /* Larger message font */
             font-weight: 700;
-            min-height: 1.5em; /* Ensure space even when empty */
-            color: #3498db; /* Blue for messages */
+            min-height: 1.5em;
+            color: #63b3ed; /* Blue for messages */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         /* Responsive adjustments */
         @media (max-width: 600px) {
             .game-container {
-                padding: 20px;
-                margin: 10px;
+                padding: 25px;
+                margin: 15px;
+                border-radius: 15px;
             }
             h1 {
-                font-size: 1.4em;
+                font-size: 1.8em;
             }
             .word-display {
-                font-size: 1.5em;
+                font-size: 1.8em;
+                letter-spacing: 6px;
             }
-            .hangman-drawing {
-                font-size: 1em;
-                height: 120px;
+            .hangman-svg-container {
+                height: 150px;
             }
             input[type="text"] {
-                font-size: 1.2em;
-                padding: 10px 8px;
-                width: 70px;
+                font-size: 1.5em;
+                padding: 12px 8px;
+                width: 80px;
             }
             button {
-                font-size: 0.9em;
-                padding: 10px 15px;
+                font-size: 1em;
+                padding: 14px 20px;
             }
             .message {
-                font-size: 1.1em;
+                font-size: 1.2em;
             }
         }
     </style>
 </head>
 <body>
     <div class="game-container">
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+        </div>
+
         <h1>Hangman</h1>
-        <div class="hangman-drawing" id="hangmanDrawing">
-            <!-- ASCII art for hangman will be updated here -->
+        <div class="hangman-svg-container">
+            <svg class="hangman-svg" viewBox="0 0 100 100">
+                <!-- Gallows Base -->
+                <line x1="10" y1="90" x2="90" y2="90" class="hangman-part" id="gallows-base" />
+                <!-- Gallows Vertical Post -->
+                <line x1="20" y1="90" x2="20" y2="10" class="hangman-part" id="gallows-post" />
+                <!-- Gallows Horizontal Beam -->
+                <line x1="20" y1="10" x2="60" y2="10" class="hangman-part" id="gallows-beam" />
+                <!-- Gallows Rope -->
+                <line x1="60" y1="10" x2="60" y2="30" class="hangman-part" id="gallows-rope" />
+
+                <!-- Hangman Parts (drawn in stages) -->
+                <circle cx="60" cy="40" r="10" class="hangman-part" id="hangman-head" />
+                <line x1="60" y1="50" x2="60" y2="70" class="hangman-part" id="hangman-body" />
+                <line x1="60" y1="55" x2="45" y2="65" class="hangman-part" id="hangman-arm-left" />
+                <line x1="60" y1="55" x2="75" y2="65" class="hangman-part" id="hangman-arm-right" />
+                <line x1="60" y1="70" x2="45" y2="85" class="hangman-part" id="hangman-leg-left" />
+                <line x1="60" y1="70" x2="75" y2="85" class="hangman-part" id="hangman-leg-right" />
+            </svg>
         </div>
 
         <div class="word-display" id="wordDisplay"></div>
@@ -617,78 +714,22 @@
         let guessedLetters = [];
         let displayWord = [];
         let wrongGuesses = 0;
-        const maxWrongGuesses = 6; // Head, Body, Left Arm, Right Arm, Left Leg, Right Leg
+        const maxWrongGuesses = 6; // Max body parts to draw
         let gameOver = false;
 
-        // ASCII art stages for the hangman
-        const hangmanStages = [
-            `
-   -----
-   |   |
-       |
-       |
-       |
-       |
-  -------
-            `,
-            `
-   -----
-   |   |
-   O   |
-       |
-       |
-       |
-  -------
-            `,
-            `
-   -----
-   |   |
-   O   |
-   |   |
-       |
-       |
-  -------
-            `,
-            `
-   -----
-   |   |
-   O   |
-  /|   |
-       |
-       |
-  -------
-            `,
-            `
-   -----
-   |   |
-   O   |
-  /|\\  |
-       |
-       |
-  -------
-            `,
-            `
-   -----
-   |   |
-   O   |
-  /|\\  |
-  /    |
-       |
-  -------
-            `,
-            `
-   -----
-   |   |
-   O   |
-  /|\\  |
-  / \\  |
-       |
-  -------
-            `
+        // IDs of the SVG hangman parts, in order of drawing for wrong guesses
+        const hangmanPartIds = [
+            "gallows-base", "gallows-post", "gallows-beam", "gallows-rope",
+            "hangman-head", "hangman-body", "hangman-arm-left", "hangman-arm-right",
+            "hangman-leg-left", "hangman-leg-right"
         ];
+        // Note: The maxWrongGuesses (6) corresponds to the 'person' parts.
+        // Gallows parts (first 4) are always drawn. The person parts (last 6) are drawn one by one.
+        // So wrongGuesses 0 will show gallows only. wrongGuesses 1 will show gallows + head, etc.
 
         // Get references to HTML elements
-        const hangmanDrawingDiv = document.getElementById('hangmanDrawing');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const hangmanDrawingSvg = document.querySelector('.hangman-svg'); // Get the SVG element
         const wordDisplayDiv = document.getElementById('wordDisplay');
         const guessedLettersSpan = document.getElementById('guessedLettersSpan');
         const guessInput = document.getElementById('guessInput');
@@ -702,8 +743,9 @@
          * For example: fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words.txt')
          */
         async function fetchWords() {
+            loadingOverlay.classList.remove('hidden'); // Show loading spinner
             messageDiv.textContent = 'Loading words...';
-            messageDiv.style.color = '#3498db';
+            messageDiv.style.color = '#63B3ED'; // Blue loading message
             guessInput.disabled = true;
             guessBtn.disabled = true;
 
@@ -711,7 +753,7 @@
                 // Simulate a network request with a delay for demonstration
                 // In a real app: const response = await fetch('YOUR_WORD_LIST_URL_HERE');
                 // const text = await response.text();
-                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate longer network delay
 
                 // Use the predefined wordListContent for demonstration
                 const text = wordListContent;
@@ -729,12 +771,14 @@
                 }
 
                 messageDiv.textContent = 'Words loaded!';
-                messageDiv.style.color = '#2ecc71';
+                messageDiv.style.color = '#48BB78'; // Green success message
             } catch (error) {
                 console.error("Failed to fetch words:", error);
-                showMessage("Failed to load words. Using a basic list.", '#e74c3c');
+                showMessage("Failed to load words. Using a basic list.", '#FC8181'); // Red error message
                 availableWords = fallbackWordList; // Use fallback if fetch fails
             } finally {
+                // Hide loading overlay after loading
+                loadingOverlay.classList.add('hidden');
                 // Short delay before starting game after load message
                 setTimeout(() => initGameLogic(), 1000);
             }
@@ -756,7 +800,7 @@
             guessInput.disabled = false;
             guessBtn.disabled = false;
             messageDiv.textContent = 'Guess a letter!';
-            messageDiv.style.color = '#3498db'; // Reset message color
+            messageDiv.style.color = '#63B3ED'; // Blue initial message
 
             updateDisplay();
             guessInput.focus();
@@ -768,7 +812,29 @@
         function updateDisplay() {
             wordDisplayDiv.textContent = displayWord.join(' ');
             guessedLettersSpan.textContent = guessedLetters.join(', ');
-            hangmanDrawingDiv.textContent = hangmanStages[wrongGuesses];
+
+            // Update SVG hangman drawing
+            // First, show gallows parts (indices 0-3)
+            for (let i = 0; i < 4; i++) {
+                const part = document.getElementById(hangmanPartIds[i]);
+                if (part) part.style.opacity = '1';
+            }
+
+            // Then, show hangman body parts based on wrong guesses (indices 4-9)
+            for (let i = 0; i < maxWrongGuesses; i++) { // maxWrongGuesses is 6, for head to right leg
+                const partIndex = i + 4; // Start from index 4 in hangmanPartIds (head)
+                const part = document.getElementById(hangmanPartIds[partIndex]);
+                if (part) {
+                    part.style.opacity = (wrongGuesses > i) ? '1' : '0'; // Show if wrong guesses exceed current part index
+                }
+            }
+            // Ensure any parts that were drawn are reset for a new game
+            if (wrongGuesses === 0 && !gameOver) {
+                 for (let i = 4; i < hangmanPartIds.length; i++) {
+                    const part = document.getElementById(hangmanPartIds[i]);
+                    if (part) part.style.opacity = '0';
+                }
+            }
         }
 
         /**
@@ -782,11 +848,11 @@
 
             // Input validation
             if (!guess.match(/^[A-Z]$/)) {
-                showMessage("Please enter a single letter from A-Z.", '#e74c3c');
+                showMessage("Please enter a single letter from A-Z.", '#FC8181'); // Red error
                 return;
             }
             if (guessedLetters.includes(guess)) {
-                showMessage(`You already guessed '${guess}'. Try a new letter.`, '#f1c40f');
+                showMessage(`You already guessed '${guess}'. Try a new letter.`, '#F6E05E'); // Yellow warning
                 return;
             }
 
@@ -801,10 +867,10 @@
             }
 
             if (foundMatch) {
-                showMessage(`Good guess! '${guess}' is in the word.`, '#2ecc71');
+                showMessage(`Good guess! '${guess}' is in the word.`, '#48BB78'); // Green success
             } else {
                 wrongGuesses++;
-                showMessage(`Oops! '${guess}' is not in the word.`, '#e74c3c');
+                showMessage(`Oops! '${guess}' is not in the word.`, '#FC8181'); // Red error
             }
 
             updateDisplay();
@@ -816,10 +882,10 @@
          */
         function checkGameStatus() {
             if (displayWord.join('') === secretWord) {
-                showMessage(`YOU WON! The word was '${secretWord}'.`, '#2ecc71');
+                showMessage(`YOU WON! The word was '${secretWord}'!`, '#48BB78'); // Green win message
                 endGame(true);
             } else if (wrongGuesses >= maxWrongGuesses) {
-                showMessage(`GAME OVER! The word was '${secretWord}'. You lost.`, '#e74c3c');
+                showMessage(`GAME OVER! The word was '${secretWord}'. You lost.`, '#FC8181'); // Red loss message
                 endGame(false);
             }
         }
@@ -846,7 +912,7 @@
 
         // Event Listeners
         guessBtn.addEventListener('click', handleGuess);
-        resetBtn.addEventListener('click', initGameLogic); // Reset button calls initGameLogic directly after words are loaded
+        resetBtn.addEventListener('click', initGameLogic);
         guessInput.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 handleGuess();
